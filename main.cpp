@@ -72,7 +72,7 @@ topit::p_t* topit::extend(const p_t* pts, size_t s, p_t fill) {
   return r;
 }
 void topit::extend(p_t** pts, size_t& s, p_t fill){
-  p_t* r = extend(*pts, s, fill)
+  p_t* r = extend(*pts, s, fill);
   delete [] *pts;
   s++;
   *pts = r ;
@@ -108,6 +108,7 @@ char * topit::canvas(f_t fr, char fill) {
   for (size_t i = 0; i < s; ++i) {
     c[i] = fill;
   }
+  return c;
 }
 topit::f_t topit::frame(const p_t* pts, size_t s) {
   int minx = pts[0].x, miny = pts[0].y;
