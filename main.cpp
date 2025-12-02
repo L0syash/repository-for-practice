@@ -24,7 +24,9 @@ namespace topit {
     p_t begin() const override;
     p_t next(p_t prev) const override;
     p_t d;
-  };
+  };\
+  p_t* extend(const p_t* pts, size_t s, p_t fill);
+  void extend(p_t** pts, size_t& s, p_t fill);
   void append (const IDraw* sh, p_t ** ppts, size_t& s);
   f_t frame(const p_t * pts, size_t s);
   char * canvas(f_t fr, char fill);
@@ -60,6 +62,45 @@ int main() {
   delete shp[1];
   delete shp[0];
   return err;
+}
+topit::p_t* topit::extend(const p_t* pts, size_t s, p_t fill) {
+  p_t* r = new p_t[s + 1];
+  for (size_t i = 0; i < s; i++) {
+    r[i] = pts[i];
+  }
+  r[s] = fill;
+  return r;
+}
+void topit::extend(p_t** pts, size_t& s, p_t fill){
+  p_t* r = extend(*pts, s, fill)
+  delete [] *pts;
+  s++;
+  *pts = r ;
+}
+void topit::append(const IDraw* sh, p_t ** ppts, size_t& s) {
+  //закинуть начало в массив
+  extend(ppts, s, sh->begin());
+  //...
+  p_t b = sh->begin();
+
+  while (sh->next(b) != sh->begin()) {
+    b = sh -> next(b);
+    extend(ppts, s, b);
+    //закинуть точку в массив
+  }
+}
+void topit::paint(p_t p, char * cnv, f_t fr, char fill) {
+  size_t dx = p.x - fr.aa.x;
+  size_t dy = fr.bb.y - p.y;
+  cnv[dy * cols(fr) + dx] = fill;
+}
+void topit::flush(std::ostream& os, const char* cnv, f_t fr) {
+  for (size_t i = 0; i < rows(fr); ++i) {
+    for (size_t j = 0; j < cols(fr); ++j) {
+      os << cnv[i * cols(fr) + j];
+    }
+    os << "\n";
+  }
 }
 char * topit::canvas(f_t fr, char fill) {
   size_t s = rows(fr) * cols(fr);
