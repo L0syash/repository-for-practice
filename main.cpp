@@ -33,6 +33,14 @@ namespace topit {
     p_t s;
     int l;
   };
+  struct Hline: IDraw
+  {
+    explicit Hline(p_t start, int length);
+    p_t begin() const override;
+    p_t next(p_t prev) const override;
+    p_t s;
+    int l;
+  };
   p_t* extend(const p_t* pts, size_t s, p_t fill);
   void extend(p_t** pts, size_t& s, p_t fill);
   void append (const IDraw* sh, p_t ** ppts, size_t& s);
@@ -49,7 +57,7 @@ int main() {
   size_t s = 0;
   try {
     shp[0] = new Dot({0, 0});
-    shp[1] = new Dot({4, 4});
+    shp[1] = new Hline({-5, -2}, -6);
     shp[2] = new Vline({2, 3}, -4); 
     for (size_t i = 0; i < 3; ++i) {
       append(shp[i], &pts, s);
@@ -170,7 +178,36 @@ topit::p_t topit::Vline::next(p_t prev) const {
     }
   return {prev.x, prev.y + dir};
 }
-
+topit::Hline::Hline(p_t start, int length):
+ IDraw(),
+ s{start},
+ l{length}
+{}
+topit::p_t topit::Hline::begin() const {
+  return s;
+}
+topit::p_t topit::Hline::next(p_t prev) const {
+    if (l == 0) return s;
+    if (prev == s) {
+        if (std::abs(l) > 1) {
+          return {s.x + (l > 0 ? 1 : -1), s.y};
+        }
+      return s;
+    }
+    if (prev.y != s.y) {
+      throw std::logic_error("bad prev");
+    }
+    int steps = std::abs(l);
+    int dir = l > 0 ? 1 : -1;
+    int current_step = (prev.x - s.x) / dir;
+    if (current_step < 0 || current_step >= steps) {
+      throw std::logic_error("bad prev");
+    }
+    if (current_step == steps - 1) {
+      return s;
+    }
+  return {prev.x + dir, prev.y};
+}
 size_t topit::rows(f_t fr) {
   return fr.bb.y - fr.aa.y + 1;
 }
