@@ -41,6 +41,14 @@ namespace topit {
     p_t s;
     int l;
   };
+  struct Square: IDraw
+  {
+    explicit Square(p_t start, int side);
+    p_t begin() const override;
+    p_t next(p_t prev) const override;
+    p_t s;
+    int a;
+  };
   p_t* extend(const p_t* pts, size_t s, p_t fill);
   void extend(p_t** pts, size_t& s, p_t fill);
   void append (const IDraw* sh, p_t ** ppts, size_t& s);
@@ -208,6 +216,58 @@ topit::p_t topit::Hline::next(p_t prev) const {
     }
   return {prev.x + dir, prev.y};
 }
+topit::Square::Square(p_t start, int side):
+ IDraw(),
+ s{start},
+ a{side}
+{}
+topit::p_t topit::Square::begin() const {
+  return s;
+}
+topit::p_t topit::Square::next(p_t prev) const {
+  if (a == 0) return s;
+  int abs_a = std::abs(a);
+  int dir = a > 0 ? 1 : -1;
+  if (prev == s) {
+    if (abs_a > 0) {
+      return {s.x + dir, s.y};
+    }
+    return s;
+  }
+  if (prev.y == s.y && ((dir > 0 && prev.x > s.x && prev.x < s.x + a) || 
+                         (dir < 0 && prev.x < s.x && prev.x > s.x + a))) {
+    return {prev.x + dir, prev.y};
+  }
+  if (prev.x == s.x + a && ((dir > 0 && prev.y > s.y && prev.y < s.y + a) ||
+                             (dir < 0 && prev.y < s.y && prev.y > s.y + a))) {
+    return {prev.x, prev.y + dir};
+  }
+
+  if (prev.y == s.y + a && ((dir > 0 && prev.x < s.x + a && prev.x > s.x) ||
+                             (dir < 0 && prev.x > s.x + a && prev.x < s.x))) {
+    return {prev.x - dir, prev.y};
+  }
+  if (prev.x == s.x && ((dir > 0 && prev.y < s.y + a && prev.y > s.y) ||
+                         (dir < 0 && prev.y > s.y + a && prev.y < s.y))) {
+    return {prev.x, prev.y - dir};
+  }
+  if (prev.x == s.x + a && prev.y == s.y) {
+    if (abs_a > 0) {
+      return {s.x + a, s.y + dir};
+    }
+    return s;
+  }
+  if (prev.x == s.x + a && prev.y == s.y + a) {
+    return {s.x + a - dir, s.y + a};
+  }
+  if (prev.x == s.x && prev.y == s.y + a) {
+    return {s.x, s.y + a - dir};
+  }
+  if (prev == s) {
+    return s;
+  }
+  throw std::logic_error("bad prev");
+}
 size_t topit::rows(f_t fr) {
   return fr.bb.y - fr.aa.y + 1;
 }
@@ -220,4 +280,4 @@ bool topit::operator==(p_t a, p_t b) {
 bool topit::operator!=(p_t a, p_t b) {
   return !(a == b);
 }
-//
+
